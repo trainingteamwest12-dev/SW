@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skill-Will Dashboard</title>
     <!-- Tailwind CSS for modern responsive UI -->
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Chart.js for the dynamic 4-quadrant matrix chart -->
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .matrix-container { position: relative; width: 100%; height: 400px; }
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
@@ -59,14 +59,13 @@
             </form>
         </section>
 
-        <!-- 2. ADMIN LOGIN GATE (MASKED PASSWORD VIA SW!16) -->
+        <!-- 2. ADMIN LOGIN GATE -->
         <section id="admin-login-view" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10 hidden">
             <h2 class="text-2xl font-bold text-slate-900 mb-2">🛡️ Admin Verification</h2>
             <p class="text-slate-500 text-sm mb-6">Enter your security key to access master logs and framework rules.</p>
             <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold mb-1">Admin Password</label>
-                    <!-- Masked password input field -->
                     <input type="password" id="admin_password" required placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:outline-slate-800">
                 </div>
                 <p id="adminAuthError" class="text-red-600 text-xs hidden font-medium">⚠️ Invalid admin credential string.</p>
@@ -90,9 +89,8 @@
 
             <!-- Main Input Grid Split -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Data Entry Tables (Left side 2 cols) -->
+                <!-- Data Entry Tables -->
                 <div class="lg:col-span-2 space-y-6">
-                    <!-- Team Controls with Employee ID input -->
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
                         <div class="flex flex-wrap items-center gap-2">
                             <input type="text" id="newMemberName" placeholder="Employee Name" class="px-3 py-1.5 border rounded-lg text-sm focus:outline-indigo-600">
@@ -109,7 +107,6 @@
                         No team members added yet. Add a name and ID above to initialize your tracking grid.
                     </div>
 
-                    <!-- Evaluation Matrix Table Area -->
                     <div id="evaluationTableContainer" class="hidden space-y-6">
                         <div id="employeeGridContainer" class="space-y-6"></div>
                     </div>
@@ -131,8 +128,741 @@
             </div>
         </section>
 
-        <!-- 4. MASTER ADMIN DASHBOARD CONSOLE (REBRANDED) -->
+        <!-- 4. MASTER ADMIN DASHBOARD CONSOLE -->
         <section id="admin-dashboard-view" class="hidden space-y-6">
-            <!-- Admin Header -->
             <div class="bg-slate-900 text-white p-6 rounded-xl shadow-sm flex flex-wrap justify-between items-center gap-4">
                 <div>
+                    <h2 class="text-2xl font-bold">🛡️ Skill-Will Dashboard</h2>
+                    <p class="text-slate-400 text-xs mt-1">Configure parameters, track active manager submissions, and run data exports.</p>
+                </div>
+                <div class="flex bg-slate-800 p-1.5 rounded-lg border border-slate-700">
+                    <button id="adminTabTrackingBtn" onclick="switchAdminTab('tracking')" class="px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all text-white cursor-pointer">Manager Tracking</button>
+                    <button id="adminTabConfigBtn" onclick="switchAdminTab('config')" class="px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all cursor-pointer">Schema Configurator</button>
+                </div>
+            </div>
+
+            <div id="admin-tab-tracking" class="space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Search Manager / Email</label>
+                        <input type="text" id="adminSearchQuery" oninput="applyAdminTrackingFilters()" placeholder="Filter by keywords..." class="w-full px-3 py-1.5 border rounded-lg text-sm focus:outline-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Filter Region</label>
+                        <select id="adminFilterRegion" onchange="applyAdminTrackingFilters()" class="w-full px-3 py-1.5 border rounded-lg text-sm bg-slate-50 focus:outline-slate-800"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Filter Depot</label>
+                        <select id="adminFilterDepot" onchange="applyAdminTrackingFilters()" class="w-full px-3 py-1.5 border rounded-lg text-sm bg-slate-50 focus:outline-slate-800"></select>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-sm">Data Extraction Tool</h4>
+                        <p class="text-xs text-slate-500">Run secure spreadsheet extractions of submitted evaluations.</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="exportExcelReport('all')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all shadow cursor-pointer">📊 Master Excel Export</button>
+                        <button onclick="exportExcelReport('subfunc')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all shadow cursor-pointer">🎯 Sub-Function Excel Export</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider border-b">
+                                <th class="p-4">Manager Profile</th>
+                                <th class="p-4">Region / Depot</th>
+                                <th class="p-4 text-center">Status</th>
+                                <th class="p-4 text-center">Headcount Evaluated</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTrackingTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="admin-tab-config" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Structure Configuration Blueprint</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Create New Sub-Function Framework</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="newSubFuncName" placeholder="e.g., Business Development" class="px-3 py-2 border rounded-lg text-sm w-full max-w-sm focus:outline-slate-800">
+                                <button onclick="addNewSubFunction()" class="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">Add Framework</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Select Framework to Edit Configuration:</label>
+                            <select id="adminSubFuncSelector" onchange="loadAdminSubFuncMeta()" class="px-3 py-2 border rounded-lg bg-slate-50 text-sm font-medium w-full max-w-sm focus:outline-slate-800"></select>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div class="space-y-3 bg-slate-50 p-4 rounded-lg border">
+                                <h4 class="font-bold text-indigo-900 text-sm">⚙️ Skill Parameters (Dynamic)</h4>
+                                <div id="adminSkillParamsList" class="space-y-2 text-xs"></div>
+                                <div class="flex space-x-2 pt-2">
+                                    <input type="text" id="newSkillParamText" placeholder="Add custom skill parameter..." class="px-2 py-1.5 border rounded bg-white text-xs w-full">
+                                    <button onclick="addConfigParam('skill')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-indigo-700 cursor-pointer">Add</button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 bg-slate-50 p-4 rounded-lg border">
+                                <h4 class="font-bold text-amber-900 text-sm">⚙️ Will Parameters (Dynamic)</h4>
+                                <div id="adminWillParamsList" class="space-y-2 text-xs"></div>
+                                <div class="flex space-x-2 pt-2">
+                                    <input type="text" id="newWillParamText" placeholder="Add custom will parameter..." class="px-2 py-1.5 border rounded bg-white text-xs w-full">
+                                    <button onclick="addConfigParam('will')" class="bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-700 cursor-pointer">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="subFuncMappingModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 space-y-4 transform transition-all">
+            <div class="flex items-center space-x-3 text-amber-600 border-b pb-2">
+                <span class="text-2xl">🎯</span>
+                <h3 class="text-lg font-bold text-slate-900">Map Employee Framework</h3>
+            </div>
+            <p class="text-sm text-slate-500">
+                To prevent incorrect mapping data placement, confirm which functional performance ruleset applies to <strong id="modalTargetEmpName" class="text-slate-800"></strong> (ID: <span id="modalTargetEmpId" class="font-mono"></span>).
+            </p>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Target Sub-Function Alignment</label>
+                <select id="modalSubFuncSelector" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium focus:outline-indigo-600"></select>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeMappingModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 text-sm font-semibold cursor-pointer">Cancel</button>
+                <button onclick="commitMappedTeamMember()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow cursor-pointer">Confirm Mapping</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationAlertToast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl font-medium text-sm transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50 flex items-center space-x-2">
+        <span id="toastIcon">ℹ️</span>
+        <span id="toastMessage">Alert triggered!</span>
+    </div>
+
+    <script>
+        let currentView = 'manager-login';
+        let currentAdminTab = 'tracking';
+        let activeManager = null;
+        let chartInstance = null;
+        let stagedMemberCache = null;
+
+        let subFunctionsData = {
+            "Retail Sales and Distribution": {
+                skillParams: [
+                    "CB Installation Count",
+                    "Contractor Management CKC|EKC|AMP",
+                    "20% Increase in tiger products sales",
+                    "Active store + Unicorn + U1 & Value Growth",
+                    "OD reduction by 20% (OD<2%) Collection target achievement",
+                    "GC | CGC Performances 25 Lac + dealer count & growth"
+                ],
+                willParams: [
+                    "MWA Earning (% of monthly MWA achievement * 50%)",
+                    "MEA Earning (% of monthly MEA achievement * 25%)",
+                    "No of Active CB (% of TGT achieved of ACB YTD * 25%)"
+                ]
+            },
+            "Business Development": {
+                skillParams: ["Market Penetration Rate", "New Account Acquisition", "B2B Lead Conversion %"],
+                willParams: ["Client Engagement Drive", "Cross-Functional Synergy Initiatives"]
+            }
+        };
+
+        let managersDatabase = [
+            {
+                name: "Swapnil Dahiwal",
+                email: "swapnil@enterprise.com",
+                region: "West",
+                depot: "Mumbai Main",
+                contact: "+91 98765 43210",
+                status: "Draft",
+                activeSubFunc: "Retail Sales and Distribution",
+                team: [
+                    { id: "EMP101", name: "Rohan Joshi", subFunc: "Retail Sales and Distribution", skillRatings: [3, 4, 3, 2, 5, 4], willRatings: [4, 3, 5] },
+                    { id: "EMP102", name: "Neha Patil", subFunc: "Retail Sales and Distribution", skillRatings: [2, 3, 2, 4, 3, 2], willRatings: [3, 2, 4] }
+                ]
+            }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSystemSelectors();
+            renderChart();
+        });
+
+        function showToast(msg, icon = 'ℹ️') {
+            const toast = document.getElementById('notificationAlertToast');
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').innerText = icon;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        function initSystemSelectors() {
+            const mSel = document.getElementById('subFunctionSelector');
+            const aSel = document.getElementById('adminSubFuncSelector');
+            const popSel = document.getElementById('modalSubFuncSelector');
+            
+            mSel.innerHTML = '';
+            aSel.innerHTML = '';
+            popSel.innerHTML = '';
+
+            Object.keys(subFunctionsData).forEach(key => {
+                mSel.innerHTML += `<option value="${key}">${key}</option>`;
+                aSel.innerHTML += `<option value="${key}">${key}</option>`;
+                popSel.innerHTML += `<option value="${key}">${key}</option>`;
+            });
+
+            loadSubFunctionSchema();
+            loadAdminSubFuncMeta();
+            rebuildFilterDropdowns();
+        }
+
+        function switchView(target) {
+            document.getElementById('manager-login-view').classList.add('hidden');
+            document.getElementById('admin-login-view').classList.add('hidden');
+            document.getElementById('manager-dashboard-view').classList.add('hidden');
+            document.getElementById('admin-dashboard-view').classList.add('hidden');
+
+            if(target === 'manager-login') {
+                if(activeManager) document.getElementById('manager-dashboard-view').classList.remove('hidden');
+                else document.getElementById('manager-login-view').classList.remove('hidden');
+            } else if(target === 'admin-login') {
+                document.getElementById('admin-login-view').classList.remove('hidden');
+            } else if(target === 'manager-dashboard') {
+                document.getElementById('manager-dashboard-view').classList.remove('hidden');
+            } else if(target === 'admin-dashboard') {
+                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                applyAdminTrackingFilters();
+            }
+        }
+
+        function handleManagerLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('m_email').value.trim();
+            
+            let existing = managersDatabase.find(m => m.email.toLowerCase() === email.toLowerCase());
+            if(!existing) {
+                existing = {
+                    name: document.getElementById('m_name').value.trim(),
+                    email: email,
+                    region: document.getElementById('m_region').value.trim(),
+                    depot: document.getElementById('m_depot').value.trim(),
+                    contact: document.getElementById('m_contact').value.trim(),
+                    status: "Draft",
+                    activeSubFunc: Object.keys(subFunctionsData)[0],
+                    team: []
+                };
+                managersDatabase.push(existing);
+            }
+
+            activeManager = existing;
+            document.getElementById('displayManagerName').innerText = activeManager.name;
+            document.getElementById('displayManagerRegion').innerText = activeManager.region;
+            document.getElementById('displayManagerDepot').innerText = activeManager.depot;
+            document.getElementById('subFunctionSelector').value = activeManager.activeSubFunc;
+
+            showToast(`Profile authorized. Access granted.`, '🔑');
+            switchView('manager-dashboard');
+            loadSubFunctionSchema();
+            rebuildFilterDropdowns();
+        }
+
+        function loadSubFunctionSchema() {
+            if(!activeManager) return;
+            activeManager.activeSubFunc = document.getElementById('subFunctionSelector').value;
+            renderEmployeeGrid();
+            updateChartData();
+        }
+
+        function promptSubFunctionMapping() {
+            const nameInput = document.getElementById('newMemberName');
+            const idInput = document.getElementById('newMemberId');
+            const name = nameInput.value.trim();
+            const id = idInput.value.trim();
+
+            if(!name || !id) {
+                showToast("Data entries missing: Employee Name and ID are both strictly required.", "⚠️");
+                return;
+            }
+
+            stagedMemberCache = { name, id };
+            document.getElementById('modalTargetEmpName').innerText = name;
+            document.getElementById('modalTargetEmpId').innerText = id;
+            document.getElementById('modalSubFuncSelector').value = document.getElementById('subFunctionSelector').value;
+            
+            document.getElementById('subFuncMappingModal').classList.remove('hidden');
+        }
+
+        function closeMappingModal() {
+            document.getElementById('subFuncMappingModal').classList.add('hidden');
+            stagedMemberCache = null;
+        }
+
+        function commitMappedTeamMember() {
+            if(!stagedMemberCache || !activeManager) return;
+            const chosenSubFunc = document.getElementById('modalSubFuncSelector').value;
+            const schema = subFunctionsData[chosenSubFunc];
+
+            const newMember = {
+                id: stagedMemberCache.id,
+                name: stagedMemberCache.name,
+                subFunc: chosenSubFunc,
+                skillRatings: new Array(schema.skillParams.length).fill(3),
+                willRatings: new Array(schema.willParams.length).fill(3)
+            };
+
+            activeManager.team.push(newMember);
+            
+            if(document.getElementById('subFunctionSelector').value !== chosenSubFunc) {
+                document.getElementById('subFunctionSelector').value = chosenSubFunc;
+                activeManager.activeSubFunc = chosenSubFunc;
+            }
+
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberId').value = '';
+            
+            closeMappingModal();
+            renderEmployeeGrid();
+            updateChartData();
+            showToast(`Mapped ${newMember.name} under structural scope [${chosenSubFunc}] successfully.`, "🎯");
+        }
+
+        function validateAndSetRating(empIndex, type, paramIndex, value) {
+            const numericValue = parseFloat(value);
+            if(isNaN(numericValue) || numericValue < 1 || numericValue > 5) {
+                showToast("Data Validation Error: Scoring matrix inputs must remain trapped inside 1 to 5 metrics.", "🚫");
+                renderEmployeeGrid();
+                return;
+            }
+
+            const visibleTeam = getVisibleTeamPool();
+            const actualEmp = activeManager.team.find(e => e.id === visibleTeam[empIndex].id);
+
+            if(actualEmp) {
+                if(type === 'skill') actualEmp.skillRatings[paramIndex] = numericValue;
+                else actualEmp.willRatings[paramIndex] = numericValue;
+            }
+
+            updateChartData();
+            const metrics = calculateEmployeeOutputs(actualEmp);
+            document.getElementById(`skillSum_${actualEmp.id}`).innerText = metrics.skillSum.toFixed(1);
+            document.getElementById(`skillResult_${actualEmp.id}`).innerText = metrics.skillResult;
+            document.getElementById(`willSum_${actualEmp.id}`).innerText = metrics.willSum.toFixed(1);
+            document.getElementById(`willResult_${actualEmp.id}`).innerText = metrics.willResult;
+        }
+
+        function getVisibleTeamPool() {
+            if(!activeManager) return [];
+            return activeManager.team.filter(e => e.subFunc === activeManager.activeSubFunc);
+        }
+
+        function calculateEmployeeOutputs(emp) {
+            const schema = subFunctionsData[emp.subFunc] || { skillParams: [], willParams: [] };
+            const skillSum = emp.skillRatings.reduce((a, b) => a + b, 0);
+            const willSum = emp.willRatings.reduce((a, b) => a + b, 0);
+
+            let skillResult = "Low Skill";
+            if(skillSum <= 12) skillResult = "Low Skill";
+            else if(skillSum > 12 && skillSum <= 22.5) skillResult = "Moderate Skill";
+            else if(skillSum > 22.5) skillResult = "High Skill";
+
+            let willResult = "Low Will";
+            if(willSum <= 6) willResult = "Low Will";
+            else if(willSum > 6 && willSum < 12) willResult = "Moderate Will";
+            else if(willSum >= 12) willResult = "High Will";
+
+            return { skillSum, willSum, skillResult, willResult };
+        }
+
+        function renderEmployeeGrid() {
+            const container = document.getElementById('employeeGridContainer');
+            const alertBox = document.getElementById('noMembersAlert');
+            const tableWrap = document.getElementById('evaluationTableContainer');
+            const visiblePool = getVisibleTeamPool();
+
+            if(visiblePool.length === 0) {
+                alertBox.classList.remove('hidden');
+                tableWrap.classList.add('hidden');
+                return;
+            }
+
+            alertBox.classList.add('hidden');
+            tableWrap.classList.remove('hidden');
+            container.innerHTML = '';
+
+            const schema = subFunctionsData[activeManager.activeSubFunc];
+
+            visiblePool.forEach((emp, empIdx) => {
+                const metrics = calculateEmployeeOutputs(emp);
+
+                let skillRowsHtml = '';
+                schema.skillParams.forEach((param, pIdx) => {
+                    const currentVal = emp.skillRatings[pIdx] !== undefined ? emp.skillRatings[pIdx] : 3;
+                    skillRowsHtml += `
+                        <div class="bg-slate-50 p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                            <span class="text-xs text-slate-700 font-medium pr-2">${param}</span>
+                            <input type="number" step="0.1" min="1" max="5" value="${currentVal}" 
+                                onchange="validateAndSetRating(${empIdx}, 'skill', ${pIdx}, this.value)"
+                                class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    `;
+                });
+
+                let willRowsHtml = '';
+                schema.willParams.forEach((param, pIdx) => {
+                    const currentVal = emp.willRatings[pIdx] !== undefined ? emp.willRatings[pIdx] : 3;
+                    willRowsHtml += `
+                        <div class="bg-amber-50/40 p-2.5 rounded border border-amber-200/60 flex justify-between items-center">
+                            <span class="text-xs text-slate-700 font-medium pr-2">${param}</span>
+                            <input type="number" step="0.1" min="1" max="5" value="${currentVal}" 
+                                onchange="validateAndSetRating(${empIdx}, 'will', ${pIdx}, this.value)"
+                                class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs focus:ring-1 focus:ring-amber-500">
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-3 border-b flex justify-between items-center flex-wrap gap-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 bg-indigo-600 rounded-full"></span>
+                                <h5 class="font-bold text-slate-900 text-sm">${emp.name} <span class="text-xs font-mono text-slate-500 ml-1">[ID: ${emp.id}]</span></h5>
+                            </div>
+                            <button onclick="removeTeamMember('${emp.id}')" class="text-xs text-red-600 hover:text-red-800 font-semibold cursor-pointer">Remove Employee</button>
+                        </div>
+                        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <div class="text-xs font-bold uppercase text-indigo-900 tracking-wide pb-1 border-b">Skill Dimensions</div>
+                                ${skillRowsHtml}
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-xs font-bold uppercase text-amber-900 tracking-wide pb-1 border-b">Will Dimensions</div>
+                                ${willRowsHtml}
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border-t px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs font-semibold">
+                            <div class="border-r border-slate-200 last:border-none">Skill Score:<br><span id="skillSum_${emp.id}" class="text-sm font-bold text-indigo-900">${metrics.skillSum.toFixed(1)}</span></div>
+                            <div class="border-r border-slate-200 last:border-none">Skill Class:<br><span id="skillResult_${emp.id}" class="px-2 py-0.5 rounded text-[10px] uppercase font-black bg-indigo-100 text-indigo-800">${metrics.skillResult}</span></div>
+                            <div class="border-r border-slate-200 last:border-none">Will Score:<br><span id="willSum_${emp.id}" class="text-sm font-bold text-amber-900">${metrics.willSum.toFixed(1)}</span></div>
+                            <div class="last:border-none">Will Class:<br><span id="willResult_${emp.id}" class="px-2 py-0.5 rounded text-[10px] uppercase font-black bg-emerald-100 text-emerald-800">${metrics.willResult}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function removeTeamMember(empId) {
+            activeManager.team = activeManager.team.filter(e => e.id !== empId);
+            renderEmployeeGrid();
+            updateChartData();
+        }
+
+        function saveProgressDraft() {
+            activeManager.status = "Draft";
+            showToast("Draft version saved successfully.", "💾");
+            rebuildFilterDropdowns();
+        }
+
+        function submitFinalEvaluation() {
+            if(activeManager.team.length === 0) {
+                showToast("Cannot upload empty data matrices.", "⚠️");
+                return;
+            }
+            activeManager.status = "Submitted";
+            showToast("Framework data successfully submitted to Admin dashboard.", "📤");
+            rebuildFilterDropdowns();
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin_password').value;
+            if(pass === 'SW!16') {
+                document.getElementById('adminAuthError').classList.add('hidden');
+                document.getElementById('admin_password').value = '';
+                switchView('admin-dashboard');
+                showToast("Clearance key authorized.", "🛡️");
+            } else {
+                document.getElementById('adminAuthError').classList.remove('hidden');
+            }
+        }
+
+        function switchAdminTab(target) {
+            currentAdminTab = target;
+            const tBtn = document.getElementById('adminTabTrackingBtn');
+            const cBtn = document.getElementById('adminTabConfigBtn');
+            const tDiv = document.getElementById('admin-tab-tracking');
+            const cDiv = document.getElementById('admin-tab-config');
+
+            if(target === 'tracking') {
+                tBtn.className = "px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all text-white cursor-pointer";
+                cBtn.className = "px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all cursor-pointer text-slate-300";
+                tDiv.classList.remove('hidden');
+                cDiv.classList.add('hidden');
+                applyAdminTrackingFilters();
+            } else {
+                cBtn.className = "px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all text-white cursor-pointer";
+                tBtn.className = "px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all cursor-pointer text-slate-300";
+                cDiv.classList.remove('hidden');
+                tDiv.classList.add('hidden');
+            }
+        }
+
+        function rebuildFilterDropdowns() {
+            const rSel = document.getElementById('adminFilterRegion');
+            const dSel = document.getElementById('adminFilterDepot');
+            if(!rSel) return;
+
+            const regions = [...new Set(managersDatabase.map(m => m.region))];
+            const depots = [...new Set(managersDatabase.map(m => m.depot))];
+
+            rSel.innerHTML = '<option value="">All Regions</option>';
+            regions.forEach(r => rSel.innerHTML += `<option value="${r}">${r}</option>`);
+
+            dSel.innerHTML = '<option value="">All Depots</option>';
+            depots.forEach(d => dSel.innerHTML += `<option value="${d}">${d}</option>`);
+        }
+
+        function applyAdminTrackingFilters() {
+            const q = document.getElementById('adminSearchQuery').value.toLowerCase();
+            const r = document.getElementById('adminFilterRegion').value;
+            const d = document.getElementById('adminFilterDepot').value;
+            const tbody = document.getElementById('adminTrackingTableBody');
+            
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            const filtered = managersDatabase.filter(m => {
+                const matchQ = m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+                const matchR = r === '' || m.region === r;
+                const matchD = d === '' || m.depot === d;
+                return matchQ && matchR && matchD;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium bg-slate-50">No matrix registries match parameters.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(m => {
+                const badgeColor = m.status === 'Submitted' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+                const actionBtn = m.status === 'Draft' 
+                    ? `<button onclick="triggerSimulatedReminder('${m.name}')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs shadow transition-all cursor-pointer">Send Reminder</button>`
+                    : `<span class="text-xs text-slate-400 font-medium">Compliance Secure</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 transition-colors">
+                        <td class="p-4">
+                            <div class="font-bold text-slate-900">${m.name}</div>
+                            <div class="text-xs text-slate-500 font-mono">${m.email} | ${m.contact}</div>
+                        </td>
+                        <td class="p-4 text-xs font-semibold text-slate-700">Reg: ${m.region}<br>Dep: ${m.depot}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${badgeColor}">${m.status}</span>
+                        </td>
+                        <td class="p-4 text-center font-black text-slate-800">${m.team.length} Members</td>
+                        <td class="p-4 text-right">${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function triggerSimulatedReminder(name) {
+            showToast(`Reminder notifications sent to manager: [${name}].`, "✉️");
+        }
+
+        function loadAdminSubFuncMeta() {
+            const target = document.getElementById('adminSubFuncSelector').value;
+            const schema = subFunctionsData[target];
+            const sList = document.getElementById('adminSkillParamsList');
+            const wList = document.getElementById('adminWillParamsList');
+
+            if(!sList) return;
+            sList.innerHTML = '';
+            wList.innerHTML = '';
+
+            schema.skillParams.forEach((p, idx) => {
+                sList.innerHTML += `
+                    <div class="flex justify-between items-center p-2 bg-white rounded border">
+                        <span class="font-medium text-slate-700 truncate mr-2">${p}</span>
+                        <button onclick="removeConfigParam('skill', ${idx})" class="text-red-500 hover:text-red-700 font-bold px-1 cursor-pointer">✕</button>
+                    </div>
+                `;
+            });
+
+            schema.willParams.forEach((p, idx) => {
+                wList.innerHTML += `
+                    <div class="flex justify-between items-center p-2 bg-white rounded border">
+                        <span class="font-medium text-slate-700 truncate mr-2">${p}</span>
+                        <button onclick="removeConfigParam('will', ${idx})" class="text-red-500 hover:text-red-700 font-bold px-1 cursor-pointer">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addNewSubFunction() {
+            const input = document.getElementById('newSubFuncName');
+            const name = input.value.trim();
+            if(!name) return;
+
+            if(subFunctionsData[name]) {
+                showToast("Framework label matches existing key descriptor.", "⚠️");
+                return;
+            }
+
+            subFunctionsData[name] = { skillParams: ["Sample Base Skill Input"], willParams: ["Sample Base Will Input"] };
+            input.value = '';
+            initSystemSelectors();
+            showToast(`Added custom sub-function: [${name}]`, "🛠️");
+        }
+
+        function addConfigParam(type) {
+            const targetFunc = document.getElementById('adminSubFuncSelector').value;
+            const input = type === 'skill' ? document.getElementById('newSkillParamText') : document.getElementById('newWillParamText');
+            const text = input.value.trim();
+            if(!text) return;
+
+            if(type === 'skill') subFunctionsData[targetFunc].skillParams.push(text);
+            else subFunctionsData[targetFunc].willParams.push(text);
+
+            input.value = '';
+            loadAdminSubFuncMeta();
+            showToast("Parameter successfully updated inside architecture configuration.", "⚙️");
+        }
+
+        function removeConfigParam(type, idx) {
+            const targetFunc = document.getElementById('adminSubFuncSelector').value;
+            if(type === 'skill') subFunctionsData[targetFunc].skillParams.splice(idx, 1);
+            else subFunctionsData[targetFunc].willParams.splice(idx, 1);
+            loadAdminSubFuncMeta();
+            showToast("Specification item pruned.", "🗑️");
+        }
+
+        function exportExcelReport(type) {
+            const targetFunc = document.getElementById('adminSubFuncSelector').value;
+            let csvRows = [];
+            csvRows.push("==== SKILL-WILL DASHBOARD MASTER REPORT ====");
+            csvRows.push(`Export Scope,${type === 'all' ? 'All Organization Sub-Functions' : `Target Subfunction Module (${targetFunc})`}`);
+            csvRows.push("");
+            csvRows.push("Manager Name,Manager Email,Region,Depot,Contact,Employee ID,Employee Name,Mapped Sub-Function,Cumulative Skill Total,Skill Designation,Cumulative Will Total,Will Designation");
+
+            let targetPool = managersDatabase;
+            if(type === 'subfunc') {
+                targetPool = managersDatabase.filter(m => m.team.some(e => e.subFunc === targetFunc));
+            }
+
+            let exportCounter = 0;
+            targetPool.forEach(m => {
+                m.team.forEach(emp => {
+                    if(type === 'subfunc' && emp.subFunc !== targetFunc) return;
+                    
+                    const metrics = calculateEmployeeOutputs(emp);
+                    const escapedManName = m.name.replace(/,/g, " ");
+                    const escapedEmpName = emp.name.replace(/,/g, " ");
+                    const escapedId = emp.id.replace(/,/g, " ");
+                    
+                    csvRows.push(`"${escapedManName}","${m.email}","${m.region}","${m.depot}","${m.contact}","${escapedId}","${escapedEmpName}","${emp.subFunc}",${metrics.skillSum.toFixed(1)},"${metrics.skillResult}",${metrics.willSum.toFixed(1)},"${metrics.willResult}"`);
+                    exportCounter++;
+                });
+            });
+
+            if(exportCounter === 0) {
+                showToast("Extraction Warning: No individual data matches found inside active query scope.", "⚠️");
+                return;
+            }
+
+            const csvString = csvRows.join("
+");
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Skill_Will_Master_Data_${type}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Report complete. ${exportCounter} data items exported.`, "📊");
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('matrixChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Team Members Placed',
+                        data: [],
+                        backgroundColor: '#4f46e5',
+                        borderWidth: 2,
+                        borderColor: '#312e81',
+                        pointRadius: 7,
+                        pointHoverRadius: 9
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 30,
+                            title: { display: true, text: 'Total Skill Score Axis', font: { weight: 'bold', size: 11 } },
+                            grid: {
+                                color: (context) => context.tick.value === 15 ? '#1e293b' : '#e2e8f0',
+                                lineWidth: (context) => context.tick.value === 15 ? 2 : 1
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 15,
+                            title: { display: true, text: 'Total Will Score Axis', font: { weight: 'bold', size: 11 } },
+                            grid: {
+                                color: (context) => context.tick.value === 7.5 ? '#1e293b' : '#e2e8f0',
+                                lineWidth: (context) => context.tick.value === 7.5 ? 2 : 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Team Member Placement (Skill: ${context.parsed.x}, Will: ${context.parsed.y})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartData() {
+            if(!chartInstance || !activeManager) return;
+            const pool = getVisibleTeamPool();
+            const scatterData = pool.map(emp => {
+                const metrics = calculateEmployeeOutputs(emp);
+                return { x: metrics.skillSum, y: metrics.willSum };
+            });
+
+            chartInstance.data.datasets[0].data = scatterData;
+            chartInstance.update();
+        }
+    </script>
+</body>
+</html>
