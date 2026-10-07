@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill vs Will Matrix Suite</title>
+    <title>Skill-Will Dashboard</title>
     <!-- Tailwind CSS for modern responsive UI -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://jsdelivr.net"></script>
     <!-- Chart.js for the dynamic 4-quadrant matrix chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://jsdelivr.net"></script>
     <style>
         .matrix-container { position: relative; width: 100%; height: 400px; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800">
@@ -17,58 +18,59 @@
     <!-- Top Navigation Bar -->
     <nav class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div class="flex items-center space-x-3">
-            <span class="text-xl font-bold tracking-wider">⚡ PERFORMANCE MATRIX SUITE</span>
+            <span class="text-xl font-bold tracking-wider">⚡ SKILL-WILL DASHBOARD</span>
         </div>
         <div class="flex space-x-2">
-            <button id="navManagerBtn" onclick="switchView('manager-login')" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 rounded font-medium transition-all text-sm">Manager Portal</button>
-            <button id="navAdminBtn" onclick="switchView('admin-login')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded font-medium transition-all text-sm">Admin Panel</button>
+            <button id="navManagerBtn" onclick="switchView('manager-login')" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 rounded font-medium transition-all text-sm cursor-pointer">Manager Portal</button>
+            <button id="navAdminBtn" onclick="switchView('admin-login')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded font-medium transition-all text-sm cursor-pointer">Admin Panel</button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         
-        <!-- 1. MANAGER LOGIN GATE -->
+        <!-- 1. MANAGER LOGIN GATE (ALL FIELDS MANDATORY) -->
         <section id="manager-login-view" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10">
             <h2 class="text-2xl font-bold text-indigo-900 mb-2">Manager Onboarding</h2>
-            <p class="text-slate-500 text-sm mb-6">Please input your deployment details to access your team matrix dashboard.</p>
+            <p class="text-slate-500 text-sm mb-6">All fields are mandatory to access the team matrix workspace.</p>
             <form id="managerLoginForm" onsubmit="handleManagerLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Full Name</label>
+                    <label class="block text-sm font-semibold mb-1">Full Name <span class="text-red-500">*</span></label>
                     <input type="text" id="m_name" required class="w-full px-3 py-2 border rounded-lg focus:outline-indigo-600">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Email Address</label>
+                    <label class="block text-sm font-semibold mb-1">Email Address <span class="text-red-500">*</span></label>
                     <input type="email" id="m_email" required class="w-full px-3 py-2 border rounded-lg focus:outline-indigo-600">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Region</label>
+                        <label class="block text-sm font-semibold mb-1">Region <span class="text-red-500">*</span></label>
                         <input type="text" id="m_region" required class="w-full px-3 py-2 border rounded-lg focus:outline-indigo-600">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Depot Name</label>
+                        <label class="block text-sm font-semibold mb-1">Depot Name <span class="text-red-500">*</span></label>
                         <input type="text" id="m_depot" required class="w-full px-3 py-2 border rounded-lg focus:outline-indigo-600">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Contact Number</label>
+                    <label class="block text-sm font-semibold mb-1">Contact Number <span class="text-red-500">*</span></label>
                     <input type="tel" id="m_contact" required class="w-full px-3 py-2 border rounded-lg focus:outline-indigo-600">
                 </div>
-                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow transition-all mt-2">Enter Evaluation Suite</button>
+                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow transition-all mt-2 cursor-pointer">Enter Evaluation Suite</button>
             </form>
         </section>
 
-        <!-- 2. ADMIN LOGIN GATE -->
+        <!-- 2. ADMIN LOGIN GATE (MASKED PASSWORD VIA SW!16) -->
         <section id="admin-login-view" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10 hidden">
             <h2 class="text-2xl font-bold text-slate-900 mb-2">🛡️ Admin Verification</h2>
-            <p class="text-slate-500 text-sm mb-6">Enter your administrator clearance key to manage rules and access master exports.</p>
+            <p class="text-slate-500 text-sm mb-6">Enter your security key to access master logs and framework rules.</p>
             <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold mb-1">Admin Password</label>
-                    <input type="password" id="admin_password" required placeholder="Default is admin123" class="w-full px-3 py-2 border rounded-lg focus:outline-slate-800">
+                    <!-- Masked password input field -->
+                    <input type="password" id="admin_password" required placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:outline-slate-800">
                 </div>
                 <p id="adminAuthError" class="text-red-600 text-xs hidden font-medium">⚠️ Invalid admin credential string.</p>
-                <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-lg font-bold shadow transition-all">Verify & Open Console</button>
+                <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-lg font-bold shadow transition-all cursor-pointer">Verify & Open Console</button>
             </form>
         </section>
 
@@ -81,7 +83,7 @@
                     <p class="text-xs text-slate-500">Region: <span id="displayManagerRegion" class="font-medium"></span> | Depot: <span id="displayManagerDepot" class="font-medium"></span></p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <label class="text-sm font-bold text-slate-700">Sub-Function Framework:</label>
+                    <label class="text-sm font-bold text-slate-700">Active View Framework:</label>
                     <select id="subFunctionSelector" onchange="loadSubFunctionSchema()" class="px-3 py-1.5 border rounded-lg bg-slate-50 font-medium text-sm focus:outline-indigo-600"></select>
                 </div>
             </div>
@@ -90,25 +92,25 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Data Entry Tables (Left side 2 cols) -->
                 <div class="lg:col-span-2 space-y-6">
-                    <!-- Team Selector / Controls -->
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center space-x-2">
+                    <!-- Team Controls with Employee ID input -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-2">
                             <input type="text" id="newMemberName" placeholder="Employee Name" class="px-3 py-1.5 border rounded-lg text-sm focus:outline-indigo-600">
-                            <button onclick="addTeamMember()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all">+ Add Member</button>
+                            <input type="text" id="newMemberId" placeholder="Employee ID" class="px-3 py-1.5 border rounded-lg text-sm focus:outline-indigo-600 w-32">
+                            <button onclick="promptSubFunctionMapping()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer">+ Add Member</button>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="saveProgressDraft()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow transition-all">💾 Save Draft</button>
-                            <button onclick="submitFinalEvaluation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow transition-all">📤 Submit Evaluation</button>
+                            <button onclick="saveProgressDraft()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow transition-all cursor-pointer">💾 Save Draft</button>
+                            <button onclick="submitFinalEvaluation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow transition-all cursor-pointer">📤 Submit Evaluation</button>
                         </div>
                     </div>
 
                     <div id="noMembersAlert" class="bg-slate-100 border text-center py-10 rounded-xl text-slate-500">
-                        No team members added yet. Type a name above to initialize your tracking grid!
+                        No team members added yet. Add a name and ID above to initialize your tracking grid.
                     </div>
 
                     <!-- Evaluation Matrix Table Area -->
                     <div id="evaluationTableContainer" class="hidden space-y-6">
-                        <!-- Employee Cards containing metrics loops -->
                         <div id="employeeGridContainer" class="space-y-6"></div>
                     </div>
                 </div>
@@ -129,727 +131,8 @@
             </div>
         </section>
 
-        <!-- 4. MASTER ADMIN DASHBOARD CONSOLE -->
+        <!-- 4. MASTER ADMIN DASHBOARD CONSOLE (REBRANDED) -->
         <section id="admin-dashboard-view" class="hidden space-y-6">
             <!-- Admin Header -->
             <div class="bg-slate-900 text-white p-6 rounded-xl shadow-sm flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold">🛡️ Enterprise Operations Command</h2>
-                    <p class="text-slate-400 text-xs mt-1">Configure structural sub-functions, monitor submissions, and run raw compliance reports.</p>
-                </div>
-                <div class="flex bg-slate-800 p-1.5 rounded-lg border border-slate-700">
-                    <button id="adminTabTrackingBtn" onclick="switchAdminTab('tracking')" class="px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all">Manager Tracking</button>
-                    <button id="adminTabConfigBtn" onclick="switchAdminTab('config')" class="px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all">Schema Configurator</button>
-                </div>
-            </div>
-
-            <div id="admin-tab-tracking" class="space-y-6">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Search Manager / Email</label>
-                        <input type="text" id="adminSearchQuery" oninput="applyAdminTrackingFilters()" placeholder="Filter by keywords..." class="w-full px-3 py-1.5 border rounded-lg text-sm focus:outline-slate-800">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Filter Region</label>
-                        <select id="adminFilterRegion" onchange="applyAdminTrackingFilters()" class="w-full px-3 py-1.5 border rounded-lg text-sm bg-slate-50 focus:outline-slate-800">
-                            <option value="">All Regions</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Filter Depot</label>
-                        <select id="adminFilterDepot" onchange="applyAdminTrackingFilters()" class="w-full px-3 py-1.5 border rounded-lg text-sm bg-slate-50 focus:outline-slate-800">
-                            <option value="">All Depots</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
-                    <div>
-                        <h4 class="font-bold text-slate-900 text-sm">Data Extraction Tool</h4>
-                        <p class="text-xs text-slate-500">Run safe downloads of completed datasets for offline archiving.</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="exportExcelReport('all')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all shadow">📊 Master Excel Export</button>
-                        <button onclick="exportExcelReport('subfunc')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all shadow">🎯 Sub-Function Excel Export</button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider border-b">
-                                <th class="p-4">Manager Profile</th>
-                                <th class="p-4">Region / Depot</th>
-                                <th class="p-4 text-center">Status</th>
-                                <th class="p-4 text-center">Headcount Evaluated</th>
-                                <th class="p-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminTrackingTableBody">
-                            <!-- Populated dynamically via JS state hooks -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="admin-tab-config" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4">Structure Configuration Blueprint</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-semibold mb-1">Create New Sub-Function Framework</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="newSubFuncName" placeholder="e.g., Institutional Sales" class="px-3 py-2 border rounded-lg text-sm w-full max-w-sm focus:outline-slate-800">
-                                <button onclick="addNewSubFunction()" class="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold">Add Framework</button>
-                            </div>
-                        </div>
-
-                        <div class="pt-2">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Select Target Sub-Function Framework to Edit Configuration:</label>
-                            <select id="adminSubFuncSelector" onchange="loadAdminSubFuncMeta()" class="px-3 py-2 border rounded-lg bg-slate-50 text-sm font-medium w-full max-w-sm focus:outline-slate-800"></select>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                            <div class="space-y-3 bg-slate-50 p-4 rounded-lg border">
-                                <h4 class="font-bold text-indigo-900 text-sm flex justify-between items-center">
-                                    <span>⚙️ Skill Parameters (Dynamic)</span>
-                                </h4>
-                                <div id="adminSkillParamsList" class="space-y-2 text-xs"></div>
-                                <div class="flex space-x-2 pt-2">
-                                    <input type="text" id="newSkillParamText" placeholder="Add custom skill parameter description..." class="px-2 py-1.5 border rounded bg-white text-xs w-full">
-                                    <button onclick="addConfigParam('skill')" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-indigo-700">Add</button>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3 bg-slate-50 p-4 rounded-lg border">
-                                <h4 class="font-bold text-amber-900 text-sm flex justify-between items-center">
-                                    <span>⚙️ Will Parameters (Dynamic)</span>
-                                </h4>
-                                <div id="adminWillParamsList" class="space-y-2 text-xs"></div>
-                                <div class="flex space-x-2 pt-2">
-                                    <input type="text" id="newWillParamText" placeholder="Add custom will parameter description..." class="px-2 py-1.5 border rounded bg-white text-xs w-full">
-                                    <button onclick="addConfigParam('will')" class="bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-700">Add</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <div id="notificationAlertToast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl font-medium text-sm transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50 flex items-center space-x-2">
-        <span id="toastIcon">ℹ️</span>
-        <span id="toastMessage">Alert triggered!</span>
-    </div>
-
-    <script>
-        // --- 1. GLOBAL STATE DATA LAYERS ---
-        let currentView = 'manager-login';
-        let currentAdminTab = 'tracking';
-        let activeManager = null;
-        let chartInstance = null;
-
-        // Core dynamic schema map
-        let subFunctionsData = {
-            "Retail Sales and Distribution": {
-                skillParams: [
-                    "CB Installation Count",
-                    "Contractor Management CKC|EKC|AMP",
-                    "20% Increase in tiger products sales",
-                    "Active store + Unicorn + U1 & Value Growth",
-                    "OD reduction by 20% (OD<2%) Collection target achievement",
-                    "GC | CGC Performances 25 Lac + dealer count & growth"
-                ],
-                willParams: [
-                    "MWA Earning (% of monthly MWA achievement * 50%)",
-                    "MEA Earning (% of monthly MEA achievement * 25%)",
-                    "No of Active CB (% of TGT achieved of ACB YTD * 25%)"
-                ]
-            }
-        };
-
-        // Simulated central DB tracking across all submissions
-        let managersDatabase = [
-            {
-                name: "Swapnil Dahiwal",
-                email: "swapnil@enterprise.com",
-                region: "West",
-                depot: "Mumbai Main",
-                contact: "+91 98765 43210",
-                status: "Draft",
-                activeSubFunc: "Retail Sales and Distribution",
-                team: [
-                    { name: "Officer A", skillRatings: [3, 4, 2, 5, 3, 4], willRatings: [4, 3, 5] },
-                    { name: "Officer B", skillRatings: [2, 1, 3, 2, 2, 1], willRatings: [2, 2, 1] }
-                ]
-            },
-            {
-                name: "Ananya Sharma",
-                email: "ananya.s@enterprise.com",
-                region: "North",
-                depot: "Delhi NCR",
-                contact: "+91 99112 23344",
-                status: "Submitted",
-                activeSubFunc: "Retail Sales and Distribution",
-                team: [
-                    { name: "Executive X", skillRatings: [5, 5, 4, 4, 5, 5], willRatings: [5, 4, 5] },
-                    { name: "Executive Y", skillRatings: [4, 3, 4, 3, 2, 4], willRatings: [2, 3, 2] }
-                ]
-            }
-        ];
-
-        // --- 2. STARTUP OPERATIONS ---
-        window.addEventListener('DOMContentLoaded', () => {
-            initSystemSelectors();
-            renderChart();
-        });
-
-        function showToast(msg, icon = 'ℹ️') {
-            const toast = document.getElementById('notificationAlertToast');
-            document.getElementById('toastMessage').innerText = msg;
-            document.getElementById('toastIcon').innerText = icon;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3500);
-        }
-
-        function initSystemSelectors() {
-            const mSel = document.getElementById('subFunctionSelector');
-            const aSel = document.getElementById('adminSubFuncSelector');
-            
-            mSel.innerHTML = '';
-            aSel.innerHTML = '';
-
-            Object.keys(subFunctionsData).forEach(key => {
-                mSel.innerHTML += `<option value="${key}">${key}</option>`;
-                aSel.innerHTML += `<option value="${key}">${key}</option>`;
-            });
-
-            loadSubFunctionSchema();
-            loadAdminSubFuncMeta();
-            rebuildFilterDropdowns();
-        }
-
-        function switchView(target) {
-            document.getElementById('manager-login-view').classList.add('hidden');
-            document.getElementById('admin-login-view').classList.add('hidden');
-            document.getElementById('manager-dashboard-view').classList.add('hidden');
-            document.getElementById('admin-dashboard-view').classList.add('hidden');
-
-            if(target === 'manager-login') {
-                if(activeManager) {
-                    document.getElementById('manager-dashboard-view').classList.remove('hidden');
-                } else {
-                    document.getElementById('manager-login-view').classList.remove('hidden');
-                }
-            } else if(target === 'admin-login') {
-                document.getElementById('admin-login-view').classList.remove('hidden');
-            } else if(target === 'manager-dashboard') {
-                document.getElementById('manager-dashboard-view').classList.remove('hidden');
-            } else if(target === 'admin-dashboard') {
-                document.getElementById('admin-dashboard-view').classList.remove('hidden');
-                applyAdminTrackingFilters();
-            }
-        }
-
-        // --- 3. MANAGER CONSOLE ACTION ENGINE ---
-        function handleManagerLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('m_email').value.trim();
-            
-            // Look up if manager registration schema profile exists, or build fresh canvas
-            let existing = managersDatabase.find(m => m.email.toLowerCase() === email.toLowerCase());
-            if(!existing) {
-                existing = {
-                    name: document.getElementById('m_name').value.trim(),
-                    email: email,
-                    region: document.getElementById('m_region').value.trim(),
-                    depot: document.getElementById('m_depot').value.trim(),
-                    contact: document.getElementById('m_contact').value.trim(),
-                    status: "Draft",
-                    activeSubFunc: Object.keys(subFunctionsData)[0],
-                    team: []
-                };
-                managersDatabase.push(existing);
-            }
-
-            activeManager = existing;
-            document.getElementById('displayManagerName').innerText = activeManager.name;
-            document.getElementById('displayManagerRegion').innerText = activeManager.region;
-            document.getElementById('displayManagerDepot').innerText = activeManager.depot;
-            document.getElementById('subFunctionSelector').value = activeManager.activeSubFunc;
-
-            showToast(`Welcome back, ${activeManager.name}. Portal workspace ready.`, '🔑');
-            switchView('manager-dashboard');
-            loadSubFunctionSchema();
-            rebuildFilterDropdowns();
-        }
-
-        function loadSubFunctionSchema() {
-            if(!activeManager) return;
-            const targetFunc = document.getElementById('subFunctionSelector').value;
-            activeManager.activeSubFunc = targetFunc;
-
-            // Sync structural grids
-            renderEmployeeGrid();
-            updateChartData();
-        }
-
-        function addTeamMember() {
-            const nameInput = document.getElementById('newMemberName');
-            const name = nameInput.value.trim();
-            if(!name) {
-                showToast("Please write a valid employee name descriptor.", "⚠️");
-                return;
-            }
-
-            const schema = subFunctionsData[activeManager.activeSubFunc];
-            
-            // Build raw blank vectors bound specifically inside 1-5 validation rule logic blocks
-            const newMember = {
-                name: name,
-                skillRatings: new Array(schema.skillParams.length).fill(3), // Default base rating safely set inside 3
-                willRatings: new Array(schema.willParams.length).fill(3)
-            };
-
-            activeManager.team.push(newMember);
-            nameInput.value = '';
-            
-            renderEmployeeGrid();
-            updateChartData();
-            showToast(`Added ${name} directly to evaluation tracking row list.`, "👤");
-        }
-
-        function validateAndSetRating(empIndex, type, paramIndex, value) {
-            const numericValue = parseFloat(value);
-            
-            // Target validation restriction rule block
-            if(isNaN(numericValue) || numericValue < 1 || numericValue > 5) {
-                showToast("Data Validation Rule Breach: Ratings must stay explicitly trapped inside the 1 to 5 scale limits.", "🚫");
-                // Force raw visual corrections
-                renderEmployeeGrid();
-                return;
-            }
-
-            if(type === 'skill') {
-                activeManager.team[empIndex].skillRatings[paramIndex] = numericValue;
-            } else {
-                activeManager.team[empIndex].willRatings[paramIndex] = numericValue;
-            }
-
-            // Calculations execution mapping block
-            calculateEmployeeOutputs(activeManager.team[empIndex]);
-            updateChartData();
-        }
-
-        function calculateEmployeeOutputs(emp) {
-            const schema = subFunctionsData[activeManager.activeSubFunc];
-            
-            // Extract totals sums dynamically
-            const skillSum = emp.skillRatings.reduce((a, b) => a + b, 0);
-            const willSum = emp.willRatings.reduce((a, b) => a + b, 0);
-
-            // Conditional threshold rule block for skills mapping
-            let skillResult = "Low Skill";
-            if(skillSum <= 12) skillResult = "Low Skill";
-            else if(skillSum > 12 && skillSum <= 22.5) skillResult = "Moderate Skill";
-            else if(skillSum > 22.5) skillResult = "High Skill";
-
-            // Conditional threshold rule block for will mapping
-            let willResult = "Low Will";
-            if(willSum <= 6) willResult = "Low Will";
-            else if(willSum > 6 && willSum < 12) willResult = "Moderate Will";
-            else if(willSum >= 12) willResult = "High Will";
-
-            return { skillSum, willSum, skillResult, willResult };
-        }
-
-        function renderEmployeeGrid() {
-            const container = document.getElementById('employeeGridContainer');
-            const alertBox = document.getElementById('noMembersAlert');
-            const tableWrap = document.getElementById('evaluationTableContainer');
-
-            if(!activeManager || activeManager.team.length === 0) {
-                alertBox.classList.remove('hidden');
-                tableWrap.classList.add('hidden');
-                return;
-            }
-
-            alertBox.classList.add('hidden');
-            tableWrap.classList.remove('hidden');
-            container.innerHTML = '';
-
-            const schema = subFunctionsData[activeManager.activeSubFunc];
-
-            activeManager.team.forEach((emp, empIdx) => {
-                const metrics = calculateEmployeeOutputs(emp);
-
-                let skillRowsHtml = '';
-                schema.skillParams.forEach((param, pIdx) => {
-                    const currentVal = emp.skillRatings[pIdx] !== undefined ? emp.skillRatings[pIdx] : 3;
-                    skillRowsHtml += `
-                        <div class="bg-slate-50 p-2.5 rounded border border-slate-200 flex justify-between items-center">
-                            <span class="text-xs text-slate-700 font-medium pr-2">${param}</span>
-                            <input type="number" step="0.1" min="1" max="5" value="${currentVal}" 
-                                onchange="validateAndSetRating(${empIdx}, 'skill', ${pIdx}, this.value)"
-                                class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs focus:ring-1 focus:ring-indigo-500">
-                        </div>
-                    `;
-                });
-
-                let willRowsHtml = '';
-                schema.willParams.forEach((param, pIdx) => {
-                    const currentVal = emp.willRatings[pIdx] !== undefined ? emp.willRatings[pIdx] : 3;
-                    willRowsHtml += `
-                        <div class="bg-amber-50/40 p-2.5 rounded border border-amber-200/60 flex justify-between items-center">
-                            <span class="text-xs text-slate-700 font-medium pr-2">${param}</span>
-                            <input type="number" step="0.1" min="1" max="5" value="${currentVal}" 
-                                onchange="validateAndSetRating(${empIdx}, 'will', ${pIdx}, this.value)"
-                                class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs focus:ring-1 focus:ring-amber-500">
-                        </div>
-                    `;
-                });
-
-                container.innerHTML += `
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="bg-slate-100 px-4 py-3 border-b flex justify-between items-center flex-wrap gap-2">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2.5 h-2.5 bg-indigo-600 rounded-full"></span>
-                                <h5 class="font-bold text-slate-900 text-sm">${emp.name}</h5>
-                            </div>
-                            <button onclick="removeTeamMember(${empIdx})" class="text-xs text-red-600 hover:text-red-800 font-semibold">Remove Employee</button>
-                        </div>
-                        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold uppercase text-indigo-900 tracking-wide pb-1 border-b">Skill Dimensions Evaluated</div>
-                                ${skillRowsHtml}
-                            </div>
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold uppercase text-amber-900 tracking-wide pb-1 border-b">Will Dimensions Evaluated</div>
-                                ${willRowsHtml}
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border-t px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs font-semibold">
-                            <div class="border-r border-slate-200 last:border-none">Skill Cumulative Total:<br><span class="text-sm font-bold text-indigo-900">${metrics.skillSum.toFixed(1)}</span></div>
-                            <div class="border-r border-slate-200 last:border-none">Skill Output Category:<br><span class="px-2 py-0.5 rounded text-[10px] uppercase font-black bg-indigo-100 text-indigo-800">${metrics.skillResult}</span></div>
-                            <div class="border-r border-slate-200 last:border-none">Will Cumulative Total:<br><span class="text-sm font-bold text-amber-900">${metrics.willSum.toFixed(1)}</span></div>
-                            <div class="last:border-none">Will Output Category:<br><span class="px-2 py-0.5 rounded text-[10px] uppercase font-black bg-emerald-100 text-emerald-800">${metrics.willResult}</span></div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function removeTeamMember(idx) {
-            activeManager.team.splice(idx, 1);
-            renderEmployeeGrid();
-            updateChartData();
-        }
-
-        function saveProgressDraft() {
-            activeManager.status = "Draft";
-            showToast("Progress draft states safely captured inside operations memory database context storage.", "💾");
-            rebuildFilterDropdowns();
-        }
-
-        function submitFinalEvaluation() {
-            if(activeManager.team.length === 0) {
-                showToast("Cannot finalize empty tracking registries.", "⚠️");
-                return;
-            }
-            activeManager.status = "Submitted";
-            showToast("Formal framework analysis package uploaded safely to Administrative operational center.", "📤");
-            rebuildFilterDropdowns();
-        }
-
-        // --- 4. ADMINISTRATOR PLATFORM ACCESS LOGIC ---
-        function handleAdminLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('admin_password').value;
-            if(pass === 'admin123') {
-                document.getElementById('adminAuthError').classList.add('hidden');
-                switchView('admin-dashboard');
-                showToast("Clearance valid. Master control dashboards loaded.", "🛡️");
-            } else {
-                document.getElementById('adminAuthError').classList.remove('hidden');
-            }
-        }
-
-        function switchAdminTab(target) {
-            currentAdminTab = target;
-            const tBtn = document.getElementById('adminTabTrackingBtn');
-            const cBtn = document.getElementById('adminTabConfigBtn');
-            const tDiv = document.getElementById('admin-tab-tracking');
-            const cDiv = document.getElementById('admin-tab-config');
-
-            if(target === 'tracking') {
-                tBtn.className = "px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all text-white";
-                cBtn.className = "px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all text-slate-300";
-                tDiv.classList.remove('hidden');
-                cDiv.classList.add('hidden');
-                applyAdminTrackingFilters();
-            } else {
-                cBtn.className = "px-4 py-1.5 bg-indigo-600 rounded font-medium text-xs tracking-wide uppercase transition-all text-white";
-                tBtn.className = "px-4 py-1.5 rounded font-medium text-xs tracking-wide uppercase transition-all text-slate-300";
-                cDiv.classList.remove('hidden');
-                tDiv.classList.add('hidden');
-            }
-        }
-
-        function rebuildFilterDropdowns() {
-            const rSel = document.getElementById('adminFilterRegion');
-            const dSel = document.getElementById('adminFilterDepot');
-            if(!rSel || !dSel) return;
-            
-            const regions = [...new Set(managersDatabase.map(m => m.region))];
-            const depots = [...new Set(managersDatabase.map(m => m.depot))];
-
-            rSel.innerHTML = '<option value="">All Regions</option>';
-            regions.forEach(r => rSel.innerHTML += `<option value="${r}">${r}</option>`);
-
-            dSel.innerHTML = '<option value="">All Depots</option>';
-            depots.forEach(d => dSel.innerHTML += `<option value="${d}">${d}</option>`);
-        }
-
-        function applyAdminTrackingFilters() {
-            const q = document.getElementById('adminSearchQuery').value.toLowerCase();
-            const r = document.getElementById('adminFilterRegion').value;
-            const d = document.getElementById('adminFilterDepot').value;
-
-            const tbody = document.getElementById('adminTrackingTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-
-            const filtered = managersDatabase.filter(m => {
-                const matchQ = m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
-                const matchR = r === '' || m.region === r;
-                const matchD = d === '' || m.depot === d;
-                return matchQ && matchR && matchD;
-            });
-
-            if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium bg-slate-50">No managers found matching active filtering logic.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(m => {
-                const badgeColor = m.status === 'Submitted' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
-                const actionBtn = m.status === 'Draft' 
-                    ? `<button onclick="triggerSimulatedReminder('${m.name}')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs shadow transition-all">Send Reminder</button>`
-                    : `<span class="text-xs text-slate-400 font-medium">Compliance Secure</span>`;
-
-                tbody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition-colors">
-                        <td class="p-4">
-                            <div class="font-bold text-slate-900">${m.name}</div>
-                            <div class="text-xs text-slate-500 font-mono">${m.email} | ${m.contact}</div>
-                        </td>
-                        <td class="p-4 text-xs font-semibold text-slate-700">Reg: ${m.region}<br>Dep: ${m.depot}</td>
-                        <td class="p-4 text-center">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${badgeColor}">${m.status}</span>
-                        </td>
-                        <td class="p-4 text-center font-black text-slate-800">${m.team.length} Members</td>
-                        <td class="p-4 text-right">${actionBtn}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function triggerSimulatedReminder(name) {
-            showToast(`Compliance warning notice ping sent directly out to manager workstation endpoint [${name}].`, "✉️");
-        }
-
-        // --- ADMIN STRUCTURE MATRIX MODIFIERS ---
-        function loadAdminSubFuncMeta() {
-            const target = document.getElementById('adminSubFuncSelector').value;
-            if(!target) return;
-            const schema = subFunctionsData[target];
-
-            const sList = document.getElementById('adminSkillParamsList');
-            const wList = document.getElementById('adminWillParamsList');
-
-            sList.innerHTML = '';
-            wList.innerHTML = '';
-
-            schema.skillParams.forEach((p, idx) => {
-                sList.innerHTML += `
-                    <div class="flex justify-between items-center p-2 bg-white rounded border">
-                        <span class="font-medium text-slate-700 truncate mr-2">${p}</span>
-                        <button onclick="removeConfigParam('skill', ${idx})" class="text-red-500 hover:text-red-700 font-bold px-1">✕</button>
-                    </div>
-                `;
-            });
-
-            schema.willParams.forEach((p, idx) => {
-                wList.innerHTML += `
-                    <div class="flex justify-between items-center p-2 bg-white rounded border">
-                        <span class="font-medium text-slate-700 truncate mr-2">${p}</span>
-                        <button onclick="removeConfigParam('will', ${idx})" class="text-red-500 hover:text-red-700 font-bold px-1">✕</button>
-                    </div>
-                `;
-            });
-        }
-
-        function addNewSubFunction() {
-            const input = document.getElementById('newSubFuncName');
-            const name = input.value.trim();
-            if(!name) return;
-
-            if(subFunctionsData[name]) {
-                showToast("Framework schema label match already loaded inside configurations database matrix.", "⚠️");
-                return;
-            }
-
-            subFunctionsData[name] = { skillParams: ["Sample Base Skill Dimension Entry"], willParams: ["Sample Base Will Dimension Entry"] };
-            input.value = '';
-            initSystemSelectors();
-            showToast(`Added custom framework context label: [${name}]`, "🛠️");
-        }
-
-        function addConfigParam(type) {
-            const targetFunc = document.getElementById('adminSubFuncSelector').value;
-            const input = type === 'skill' ? document.getElementById('newSkillParamText') : document.getElementById('newWillParamText');
-            const text = input.value.trim();
-            if(!text) return;
-
-            if(type === 'skill') {
-                subFunctionsData[targetFunc].skillParams.push(text);
-            } else {
-                subFunctionsData[targetFunc].willParams.push(text);
-            }
-
-            input.value = '';
-            loadAdminSubFuncMeta();
-            showToast("Added target configuration element parameter definition successfully.", "⚙️");
-        }
-
-        function removeConfigParam(type, idx) {
-            const targetFunc = document.getElementById('adminSubFuncSelector').value;
-            if(type === 'skill') {
-                subFunctionsData[targetFunc].skillParams.splice(idx, 1);
-            } else {
-                subFunctionsData[targetFunc].willParams.splice(idx, 1);
-            }
-            loadAdminSubFuncMeta();
-            showToast("Parameter specification element parsed and removed.", "🗑️");
-        }
-
-        // --- 5. EXCEL DATA EXPORT SIMULATION ENGINE ---
-        function exportExcelReport(type) {
-            const targetFunc = document.getElementById('adminSubFuncSelector').value;
-            
-            // Build absolute mock spreadsheet content structures
-            let csvRows = [];
-            csvRows.push("==== ENTERPRISE OPERATIONS AUDIT MASTER DATA REPORT ====");
-            csvRows.push(`Export Mode,${type === 'all' ? 'All Active Framework Registries' : `Target Subfunction Fragment (${targetFunc})`}`);
-            csvRows.push("");
-            csvRows.push("Manager Name,Manager Email,Region,Depot,Contact,Employee Name,Cumulative Skill Total,Skill Designation,Cumulative Will Total,Will Designation");
-
-            let targetPool = managersDatabase;
-            if(type === 'subfunc') {
-                targetPool = managersDatabase.filter(m => m.activeSubFunc === targetFunc);
-            }
-
-            let exportCounter = 0;
-            targetPool.forEach(m => {
-                m.team.forEach(emp => {
-                    const metrics = calculateEmployeeOutputs(emp);
-                    // Standard sanitize characters
-                    const escapedManName = m.name.replace(/,/g, " ");
-                    const escapedEmpName = emp.name.replace(/,/g, " ");
-                    
-                    csvRows.push(`"${escapedManName}","${m.email}","${m.region}","${m.depot}","${m.contact}","${escapedEmpName}",${metrics.skillSum.toFixed(1)},"${metrics.skillResult}",${metrics.willSum.toFixed(1)},"${metrics.willResult}"`);
-                    exportCounter++;
-                });
-            });
-
-            if(exportCounter === 0) {
-                showToast("Data Extraction Warning: No individual data points found inside the selected scope to export.", "⚠️");
-                return;
-            }
-
-            // Execute safe virtual file blob download stream pipeline directly inside user window environment
-            const csvString = csvRows.join("\n");
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Enterprise_Skill_Will_Report_${type}_Export.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast(`Success! Extracted CSV report file format for offline Excel tracking generated for ${exportCounter} records.`, "📊");
-        }
-
-        // --- 6. CHART.JS INTERACTIVE MATRIX ENGINE ---
-        function renderChart() {
-            const ctx = document.getElementById('matrixChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Team Members Placed',
-                        data: [],
-                        backgroundColor: '#4f46e5',
-                        borderWidth: 2,
-                        borderColor: '#312e81',
-                        pointRadius: 7,
-                        pointHoverRadius: 9
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            min: 0,
-                            max: 30, // Scaled for up to 6 skills * max rating 5
-                            title: { display: true, text: 'Total Skill Score Axis', font: { weight: 'bold', size: 11 } },
-                            grid: {
-                                color: (context) => context.tick.value === 15 ? '#1e293b' : '#e2e8f0',
-                                lineWidth: (context) => context.tick.value === 15 ? 2 : 1
-                            }
-                        },
-                        y: {
-                            min: 0,
-                            max: 15, // Scaled for up to 3 wills * max rating 5
-                            title: { display: true, text: 'Total Will Score Axis', font: { weight: 'bold', size: 11 } },
-                            grid: {
-                                color: (context) => context.tick.value === 7.5 ? '#1e293b' : '#e2e8f0',
-                                lineWidth: (context) => context.tick.value === 7.5 ? 2 : 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Score Summary: (Skill: ${context.parsed.x}, Will: ${context.parsed.y})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateChartData() {
-            if(!chartInstance || !activeManager) return;
-
-            const scatterData = activeManager.team.map(emp => {
-                const metrics = calculateEmployeeOutputs(emp);
-                return { x: metrics.skillSum, y: metrics.willSum };
-            });
-
-            chartInstance.data.datasets[0].data = scatterData;
-            chartInstance.update();
-        }
-    </script>
-</body>
-</html>
