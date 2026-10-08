@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill-Will Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .matrix-container { position: relative; width: 100%; height: 400px; }
+    .modal-overlay { background-color: rgba(0,0,0,.5); }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+<nav class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+  <span class="text-xl font-bold tracking-wider">⚡ SKILL-WILL DASHBOARD</span>
+  <div class="flex space-x-2">
+    <button onclick="switchView('manager-login')" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 rounded font-medium text-sm">Manager Portal</button>
+    <button onclick="switchView('admin-login')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded font-medium text-sm">Admin Panel</button>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto p-4 md:p-6">
+  <section id="manager-login-view" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10">
+    <h2 class="text-2xl font-bold text-indigo-900 mb-2">Manager Onboarding</h2>
+    <p class="text-slate-500 text-sm mb-6">All fields are mandatory to access the team matrix workspace.</p>
+    <form onsubmit="handleManagerLogin(event)" class="space-y-4">
+      <input id="m_name" type="text" required placeholder="Full Name" class="w-full px-3 py-2 border rounded-lg">
+      <input id="m_email" type="email" required placeholder="Email Address" class="w-full px-3 py-2 border rounded-lg">
+      <div class="grid grid-cols-2 gap-4">
+        <input id="m_region" type="text" required placeholder="Region" class="w-full px-3 py-2 border rounded-lg">
+        <input id="m_depot" type="text" required placeholder="Depot Name" class="w-full px-3 py-2 border rounded-lg">
+      </div>
+      <input id="m_contact" type="tel" required placeholder="Contact Number" class="w-full px-3 py-2 border rounded-lg">
+      <button class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold">Enter Evaluation Suite</button>
+    </form>
+  </section>
+
+  <section id="admin-login-view" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10 hidden">
+    <h2 class="text-2xl font-bold text-slate-900 mb-2">🛡️ Admin Verification</h2>
+    <p class="text-slate-500 text-sm mb-6">Enter your security key to access master logs and framework rules.</p>
+    <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+      <input id="admin_password" type="password" required placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg">
+      <p id="adminAuthError" class="text-red-600 text-xs hidden font-medium">⚠️ Invalid admin credential string.</p>
+      <button class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-lg font-bold">Verify & Open Console</button>
+    </form>
+  </section>
+
+  <section id="manager-dashboard-view" class="hidden space-y-6">
+    <div class="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <h3 class="text-lg font-bold">Manager: <span id="displayManagerName" class="text-indigo-600"></span></h3>
+        <p class="text-xs text-slate-500">Region: <span id="displayManagerRegion"></span> | Depot: <span id="displayManagerDepot"></span></p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <label class="text-sm font-bold">Active View Framework:</label>
+        <select id="subFunctionSelector" onchange="loadSubFunctionSchema()" class="px-3 py-1.5 border rounded-lg bg-slate-50 text-sm"></select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap justify-between items-center gap-4">
+          <div class="flex flex-wrap gap-2">
+            <input id="newMemberName" placeholder="Employee Name" class="px-3 py-1.5 border rounded-lg text-sm">
+            <input id="newMemberId" placeholder="Employee ID" class="px-3 py-1.5 border rounded-lg text-sm w-32">
+            <button onclick="promptSubFunctionMapping()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold">+ Add Member</button>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="saveProgressDraft()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold">💾 Save Draft</button>
+            <button onclick="submitFinalEvaluation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold">📤 Submit Evaluation</button>
+          </div>
+        </div>
+        <div id="noMembersAlert" class="bg-slate-100 border text-center py-10 rounded-xl text-slate-500">No team members added yet.</div>
+        <div id="evaluationTableContainer" class="hidden">
+          <div id="employeeGridContainer" class="space-y-6"></div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border h-fit space-y-4">
+        <h4 class="font-bold border-b pb-2 text-sm uppercase tracking-wider text-slate-500">Live Team Mapping Placement</h4>
+        <div class="matrix-container"><canvas id="matrixChart"></canvas></div>
+        <div class="grid grid-cols-2 gap-2 text-center text-xs font-bold">
+          <div class="p-2 bg-blue-50 border rounded text-blue-800">GUIDE<br><span class="font-normal text-[10px]">Low Skill / High Will</span></div>
+          <div class="p-2 bg-emerald-50 border rounded text-emerald-800">DELEGATE<br><span class="font-normal text-[10px]">High Skill / High Will</span></div>
+          <div class="p-2 bg-rose-50 border rounded text-rose-800">DIRECT<br><span class="font-normal text-[10px]">Low Skill / Low Will</span></div>
+          <div class="p-2 bg-amber-50 border rounded text-amber-800">EXCITE<br><span class="font-normal text-[10px]">High Skill / Low Will</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin-dashboard-view" class="hidden space-y-6">
+    <div class="bg-slate-900 text-white p-6 rounded-xl shadow-sm flex flex-wrap justify-between items-center gap-4">
+      <div><h2 class="text-2xl font-bold">🛡️ Skill-Will Dashboard</h2><p class="text-slate-400 text-xs mt-1">Configure parameters, track manager submissions, and export data.</p></div>
+      <div class="flex bg-slate-800 p-1.5 rounded-lg">
+        <button id="adminTabTrackingBtn" onclick="switchAdminTab('tracking')" class="px-4 py-1.5 bg-indigo-600 rounded text-xs text-white">Manager Tracking</button>
+        <button id="adminTabConfigBtn" onclick="switchAdminTab('config')" class="px-4 py-1.5 rounded text-xs text-slate-300">Schema Configurator</button>
+      </div>
+    </div>
+
+    <div id="admin-tab-tracking" class="space-y-6">
+      <div class="bg-white p-4 rounded-xl border grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <input id="adminSearchQuery" oninput="applyAdminTrackingFilters()" placeholder="Search manager/email..." class="px-3 py-1.5 border rounded-lg text-sm">
+        <select id="adminFilterRegion" onchange="applyAdminTrackingFilters()" class="px-3 py-1.5 border rounded-lg text-sm"></select>
+        <select id="adminFilterDepot" onchange="applyAdminTrackingFilters()" class="px-3 py-1.5 border rounded-lg text-sm"></select>
+      </div>
+      <div class="bg-white p-4 rounded-xl border flex flex-wrap justify-between items-center gap-4">
+        <div><h4 class="font-bold text-sm">Data Extraction Tool</h4><p class="text-xs text-slate-500">Export submitted evaluations.</p></div>
+        <div class="flex space-x-2">
+          <button onclick="exportExcelReport('all')" class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg">📊 Master Excel Export</button>
+          <button onclick="exportExcelReport('subfunc')" class="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-lg">🎯 Sub-Function Export</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border overflow-x-auto">
+        <table class="w-full text-left text-sm"><thead><tr class="bg-slate-100 text-xs uppercase border-b">
+          <th class="p-4">Manager Profile</th><th class="p-4">Region / Depot</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Headcount</th><th class="p-4 text-right">Actions</th>
+        </tr></thead><tbody id="adminTrackingTableBody"></tbody></table>
+      </div>
+    </div>
+
+    <div id="admin-tab-config" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl border">
+        <h3 class="text-lg font-bold mb-4">Structure Configuration Blueprint</h3>
+        <div class="space-y-4">
+          <div class="flex space-x-2">
+            <input id="newSubFuncName" placeholder="e.g. Business Development" class="px-3 py-2 border rounded-lg text-sm w-full max-w-sm">
+            <button onclick="addNewSubFunction()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold">Add Framework</button>
+          </div>
+          <select id="adminSubFuncSelector" onchange="loadAdminSubFuncMeta()" class="px-3 py-2 border rounded-lg text-sm w-full max-w-sm"></select>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 rounded-lg border">
+              <h4 class="font-bold text-indigo-900 text-sm">⚙️ Skill Parameters</h4>
+              <div id="adminSkillParamsList" class="space-y-2 mt-3"></div>
+              <div class="flex space-x-2 mt-3"><input id="newSkillParamText" placeholder="Add skill parameter..." class="px-2 py-1.5 border rounded text-xs w-full"><button onclick="addConfigParam('skill')" class="bg-indigo-600 text-white text-xs px-3 rounded">Add</button></div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-lg border">
+              <h4 class="font-bold text-amber-900 text-sm">⚙️ Will Parameters</h4>
+              <div id="adminWillParamsList" class="space-y-2 mt-3"></div>
+              <div class="flex space-x-2 mt-3"><input id="newWillParamText" placeholder="Add will parameter..." class="px-2 py-1.5 border rounded text-xs w-full"><button onclick="addConfigParam('will')" class="bg-amber-600 text-white text-xs px-3 rounded">Add</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="subFuncMappingModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 space-y-4">
+    <h3 class="text-lg font-bold">🎯 Map Employee Framework</h3>
+    <p class="text-sm text-slate-500">Confirm the functional ruleset for <strong id="modalTargetEmpName"></strong> (ID: <span id="modalTargetEmpId"></span>).</p>
+    <select id="modalSubFuncSelector" class="w-full px-3 py-2 border rounded-lg text-sm"></select>
+    <div class="flex justify-end space-x-2">
+      <button onclick="closeMappingModal()" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
+      <button onclick="commitMappedTeamMember()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold">Confirm Mapping</button>
+    </div>
+  </div>
+</div>
+
+<div id="notificationAlertToast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl text-sm transform translate-y-20 opacity-0 transition-all pointer-events-none z-50">
+  <span id="toastIcon">ℹ️</span> <span id="toastMessage">Alert triggered!</span>
+</div>
+
+<script>
+'use strict';
+
+const ADMIN_PASSWORD = 'SW!16'; // Replace with real server-side authentication before production.
+
+let activeManager = null;
+let chartInstance = null;
+let stagedMemberCache = null;
+let currentAdminTab = 'tracking';
+
+const subFunctionsData = {
+  "Retail Sales and Distribution": {
+    skillParams: [
+      "CB Installation Count",
+      "Contractor Management CKC|EKC|AMP",
+      "20% Increase in tiger products sales",
+      "Active store + Unicorn + U1 & Value Growth",
+      "OD reduction by 20% (OD<2%) Collection target achievement",
+      "GC | CGC Performances 25 Lac + dealer count & growth"
+    ],
+    willParams: [
+      "MWA Earning (% of monthly MWA achievement * 50%)",
+      "MEA Earning (% of monthly MEA achievement * 25%)",
+      "No of Active CB (% of TGT achieved of ACB YTD * 25%)"
+    ]
+  },
+  "Business Development": {
+    skillParams: ["Market Penetration Rate", "New Account Acquisition", "B2B Lead Conversion %"],
+    willParams: ["Client Engagement Drive", "Cross-Functional Synergy Initiatives"]
+  }
+};
+
+let managersDatabase = [{
+  name: "Swapnil Dahiwal", email: "swapnil@enterprise.com", region: "West", depot: "Mumbai Main",
+  contact: "+91 98765 43210", status: "Draft", activeSubFunc: "Retail Sales and Distribution",
+  team: [
+    { id:"EMP101", name:"Rohan Joshi", subFunc:"Retail Sales and Distribution", skillRatings:[3,4,3,2,5,4], willRatings:[4,3,5] },
+    { id:"EMP102", name:"Neha Patil", subFunc:"Retail Sales and Distribution", skillRatings:[2,3,2,4,3,2], willRatings:[3,2,4] }
+  ]
+}];
+
+function $(id) { return document.getElementById(id); }
+
+function showToast(message, icon='ℹ️') {
+  $('toastMessage').textContent = message;
+  $('toastIcon').textContent = icon;
+  const toast = $('notificationAlertToast');
+  toast.classList.remove('translate-y-20','opacity-0');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.add('translate-y-20','opacity-0'), 3500);
+}
+
+function switchView(target) {
+  ['manager-login-view','admin-login-view','manager-dashboard-view','admin-dashboard-view']
+    .forEach(id => $(id).classList.add('hidden'));
+
+  if (target === 'manager-login') {
+    $(activeManager ? 'manager-dashboard-view' : 'manager-login-view').classList.remove('hidden');
+  } else if (target === 'admin-login') {
+    $('admin-login-view').classList.remove('hidden');
+  } else if (target === 'manager-dashboard') {
+    $('manager-dashboard-view').classList.remove('hidden');
+  } else if (target === 'admin-dashboard') {
+    $('admin-dashboard-view').classList.remove('hidden');
+    applyAdminTrackingFilters();
+  }
+}
+
+function initSystemSelectors() {
+  ['subFunctionSelector','adminSubFuncSelector','modalSubFuncSelector'].forEach(id => $(id).replaceChildren());
+  Object.keys(subFunctionsData).forEach(name => {
+    ['subFunctionSelector','adminSubFuncSelector','modalSubFuncSelector'].forEach(id => {
+      $(id).add(new Option(name, name));
+    });
+  });
+  if (activeManager) $('subFunctionSelector').value = activeManager.activeSubFunc;
+  loadSubFunctionSchema();
+  loadAdminSubFuncMeta();
+  rebuildFilterDropdowns();
+}
+
+function handleManagerLogin(event) {
+  event.preventDefault();
+  const email = $('m_email').value.trim();
+  let manager = managersDatabase.find(m => m.email.toLowerCase() === email.toLowerCase());
+
+  if (!manager) {
+    manager = {
+      name:$('m_name').value.trim(), email, region:$('m_region').value.trim(),
+      depot:$('m_depot').value.trim(), contact:$('m_contact').value.trim(),
+      status:'Draft', activeSubFunc:Object.keys(subFunctionsData)[0], team:[]
+    };
+    managersDatabase.push(manager);
+  }
+
+  activeManager = manager;
+  $('displayManagerName').textContent = manager.name;
+  $('displayManagerRegion').textContent = manager.region;
+  $('displayManagerDepot').textContent = manager.depot;
+  $('subFunctionSelector').value = manager.activeSubFunc;
+  switchView('manager-dashboard');
+  loadSubFunctionSchema();
+  rebuildFilterDropdowns();
+  showToast('Profile authorized. Access granted.','🔑');
+}
+
+function loadSubFunctionSchema() {
+  if (!activeManager) return;
+  activeManager.activeSubFunc = $('subFunctionSelector').value;
+  renderEmployeeGrid();
+  updateChartData();
+}
+
+function promptSubFunctionMapping() {
+  const name = $('newMemberName').value.trim();
+  const id = $('newMemberId').value.trim();
+  if (!name || !id) return showToast('Employee Name and ID are required.','⚠️');
+
+  stagedMemberCache = {name,id};
+  $('modalTargetEmpName').textContent = name;
+  $('modalTargetEmpId').textContent = id;
+  $('modalSubFuncSelector').value = $('subFunctionSelector').value;
+  $('subFuncMappingModal').classList.remove('hidden');
+}
+
+function closeMappingModal() {
+  $('subFuncMappingModal').classList.add('hidden');
+  stagedMemberCache = null;
+}
+
+function commitMappedTeamMember() {
+  if (!stagedMemberCache || !activeManager) return;
+  const chosen = $('modalSubFuncSelector').value;
+  const schema = subFunctionsData[chosen];
+
+  if (activeManager.team.some(e => e.id.toLowerCase() === stagedMemberCache.id.toLowerCase())) {
+    return showToast('Employee ID already exists for this manager.','⚠️');
+  }
+
+  activeManager.team.push({
+    id: stagedMemberCache.id, name: stagedMemberCache.name, subFunc: chosen,
+    skillRatings:new Array(schema.skillParams.length).fill(3),
+    willRatings:new Array(schema.willParams.length).fill(3)
+  });
+
+  $('subFunctionSelector').value = chosen;
+  activeManager.activeSubFunc = chosen;
+  $('newMemberName').value = '';
+  $('newMemberId').value = '';
+  closeMappingModal();
+  renderEmployeeGrid();
+  updateChartData();
+  showToast(`Mapped ${stagedMemberCache?.name || 'employee'} successfully.`,'🎯');
+}
+
+function getVisibleTeamPool() {
+  return activeManager ? activeManager.team.filter(e => e.subFunc === activeManager.activeSubFunc) : [];
+}
+
+function calculateEmployeeOutputs(emp) {
+  const skillSum = emp.skillRatings.reduce((a,b)=>a+Number(b||0),0);
+  const willSum = emp.willRatings.reduce((a,b)=>a+Number(b||0),0);
+  return {
+    skillSum, willSum,
+    skillResult: skillSum <= 12 ? 'Low Skill' : skillSum <= 22.5 ? 'Moderate Skill' : 'High Skill',
+    willResult: willSum <= 6 ? 'Low Will' : willSum < 12 ? 'Moderate Will' : 'High Will'
+  };
+}
+
+function validateAndSetRating(empIndex, type, paramIndex, value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 1 || number > 5) {
+    showToast('Scores must be between 1 and 5.','🚫');
+    renderEmployeeGrid();
+    return;
+  }
+  const visible = getVisibleTeamPool();
+  const emp = visible[empIndex];
+  if (!emp) return;
+  emp[type === 'skill' ? 'skillRatings' : 'willRatings'][paramIndex] = number;
+  renderEmployeeGrid();
+  updateChartData();
+}
+
+function renderEmployeeGrid() {
+  const pool = getVisibleTeamPool();
+  $('noMembersAlert').classList.toggle('hidden', pool.length > 0);
+  $('evaluationTableContainer').classList.toggle('hidden', pool.length === 0);
+  if (!pool.length) return;
+
+  const schema = subFunctionsData[activeManager.activeSubFunc];
+  $('employeeGridContainer').innerHTML = pool.map((emp, empIdx) => {
+    const metrics = calculateEmployeeOutputs(emp);
+    const skillRows = schema.skillParams.map((param,i) => `
+      <div class="bg-slate-50 p-2.5 rounded border flex justify-between items-center">
+        <span class="text-xs font-medium pr-2">${escapeHtml(param)}</span>
+        <input type="number" step="0.1" min="1" max="5" value="${emp.skillRatings[i] ?? 3}"
+          onchange="validateAndSetRating(${empIdx},'skill',${i},this.value)" class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs">
+      </div>`).join('');
+    const willRows = schema.willParams.map((param,i) => `
+      <div class="bg-amber-50/40 p-2.5 rounded border flex justify-between items-center">
+        <span class="text-xs font-medium pr-2">${escapeHtml(param)}</span>
+        <input type="number" step="0.1" min="1" max="5" value="${emp.willRatings[i] ?? 3}"
+          onchange="validateAndSetRating(${empIdx},'will',${i},this.value)" class="w-14 text-center px-1 py-1 border rounded bg-white font-bold text-xs">
+      </div>`).join('');
+
+    return `<div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div class="bg-slate-100 px-4 py-3 border-b flex justify-between items-center">
+        <h5 class="font-bold text-sm">${escapeHtml(emp.name)} <span class="text-xs font-mono text-slate-500">[ID: ${escapeHtml(emp.id)}]</span></h5>
+        <button onclick="removeTeamMember('${jsString(emp.id)}')" class="text-xs text-red-600 font-semibold">Remove Employee</button>
+      </div>
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2"><div class="text-xs font-bold uppercase text-indigo-900 pb-1 border-b">Skill Dimensions</div>${skillRows}</div>
+        <div class="space-y-2"><div class="text-xs font-bold uppercase text-amber-900 pb-1 border-b">Will Dimensions</div>${willRows}</div>
+      </div>
+      <div class="bg-slate-50 border-t px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs font-semibold">
+        <div>Skill Score:<br><b>${metrics.skillSum.toFixed(1)}</b></div>
+        <div>Skill Class:<br><b>${metrics.skillResult}</b></div>
+        <div>Will Score:<br><b>${metrics.willSum.toFixed(1)}</b></div>
+        <div>Will Class:<br><b>${metrics.willResult}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeTeamMember(id) {
+  if (!activeManager) return;
+  activeManager.team = activeManager.team.filter(e => e.id !== id);
+  renderEmployeeGrid();
+  updateChartData();
+}
+
+function saveProgressDraft() {
+  if (!activeManager) return;
+  activeManager.status = 'Draft';
+  rebuildFilterDropdowns();
+  showToast('Draft version saved successfully.','💾');
+}
+
+function submitFinalEvaluation() {
+  if (!activeManager || !activeManager.team.length) return showToast('Cannot submit empty data.','⚠️');
+  activeManager.status = 'Submitted';
+  rebuildFilterDropdowns();
+  showToast('Evaluation successfully submitted.','📤');
+}
+
+function handleAdminLogin(event) {
+  event.preventDefault();
+  if ($('admin_password').value === ADMIN_PASSWORD) {
+    $('adminAuthError').classList.add('hidden');
+    $('admin_password').value = '';
+    switchView('admin-dashboard');
+    showToast('Clearance key authorized.','🛡️');
+  } else {
+    $('adminAuthError').classList.remove('hidden');
+  }
+}
+
+function switchAdminTab(target) {
+  currentAdminTab = target;
+  const tracking = target === 'tracking';
+  $('admin-tab-tracking').classList.toggle('hidden', !tracking);
+  $('admin-tab-config').classList.toggle('hidden', tracking);
+  $('adminTabTrackingBtn').className = tracking ? 'px-4 py-1.5 bg-indigo-600 rounded text-xs text-white' : 'px-4 py-1.5 rounded text-xs text-slate-300';
+  $('adminTabConfigBtn').className = !tracking ? 'px-4 py-1.5 bg-indigo-600 rounded text-xs text-white' : 'px-4 py-1.5 rounded text-xs text-slate-300';
+  if (tracking) applyAdminTrackingFilters();
+}
+
+function rebuildFilterDropdowns() {
+  const regions = [...new Set(managersDatabase.map(m=>m.region))];
+  const depots = [...new Set(managersDatabase.map(m=>m.depot))];
+  $('adminFilterRegion').innerHTML = '<option value="">All Regions</option>' + regions.map(x=>`<option>${escapeHtml(x)}</option>`).join('');
+  $('adminFilterDepot').innerHTML = '<option value="">All Depots</option>' + depots.map(x=>`<option>${escapeHtml(x)}</option>`).join('');
+}
+
+function applyAdminTrackingFilters() {
+  const q = ($('adminSearchQuery')?.value || '').toLowerCase();
+  const r = $('adminFilterRegion')?.value || '';
+  const d = $('adminFilterDepot')?.value || '';
+  const filtered = managersDatabase.filter(m =>
+    (m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)) &&
+    (!r || m.region === r) && (!d || m.depot === d)
+  );
+
+  $('adminTrackingTableBody').innerHTML = filtered.length ? filtered.map(m => `
+    <tr class="border-b">
+      <td class="p-4"><b>${escapeHtml(m.name)}</b><div class="text-xs text-slate-500">${escapeHtml(m.email)} | ${escapeHtml(m.contact)}</div></td>
+      <td class="p-4 text-xs">Reg: ${escapeHtml(m.region)}<br>Dep: ${escapeHtml(m.depot)}</td>
+      <td class="p-4 text-center">${escapeHtml(m.status)}</td>
+      <td class="p-4 text-center font-bold">${m.team.length}</td>
+      <td class="p-4 text-right">${m.status === 'Draft' ? `<button onclick="triggerSimulatedReminder('${jsString(m.name)}')" class="px-3 py-1 bg-amber-500 text-white rounded text-xs">Send Reminder</button>` : 'Compliance Secure'}</td>
+    </tr>`).join('') :
+    '<tr><td colspan="5" class="p-8 text-center text-slate-400">No matrix registries match parameters.</td></tr>';
+}
+
+function triggerSimulatedReminder(name) { showToast(`Reminder notification prepared for ${name}.`,'✉️'); }
+
+function loadAdminSubFuncMeta() {
+  const schema = subFunctionsData[$('adminSubFuncSelector').value];
+  if (!schema) return;
+  $('adminSkillParamsList').innerHTML = schema.skillParams.map((p,i)=>`<div class="flex justify-between p-2 bg-white rounded border"><span>${escapeHtml(p)}</span><button onclick="removeConfigParam('skill',${i})" class="text-red-500">✕</button></div>`).join('');
+  $('adminWillParamsList').innerHTML = schema.willParams.map((p,i)=>`<div class="flex justify-between p-2 bg-white rounded border"><span>${escapeHtml(p)}</span><button onclick="removeConfigParam('will',${i})" class="text-red-500">✕</button></div>`).join('');
+}
+
+function addNewSubFunction() {
+  const input = $('newSubFuncName'), name = input.value.trim();
+  if (!name) return;
+  if (subFunctionsData[name]) return showToast('That framework already exists.','⚠️');
+  subFunctionsData[name] = {skillParams:['Sample Base Skill Input'],willParams:['Sample Base Will Input']};
+  input.value = '';
+  initSystemSelectors();
+  showToast(`Added custom sub-function: ${name}`,'🛠️');
+}
+
+function addConfigParam(type) {
+  const target = $('adminSubFuncSelector').value;
+  const input = type === 'skill' ? $('newSkillParamText') : $('newWillParamText');
+  const value = input.value.trim();
+  if (!value) return;
+  subFunctionsData[target][type === 'skill' ? 'skillParams' : 'willParams'].push(value);
+  input.value = '';
+  loadAdminSubFuncMeta();
+  showToast('Parameter updated.','⚙️');
+}
+
+function removeConfigParam(type,index) {
+  const target = $('adminSubFuncSelector').value;
+  subFunctionsData[target][type === 'skill' ? 'skillParams' : 'willParams'].splice(index,1);
+  loadAdminSubFuncMeta();
+  showToast('Parameter removed.','🗑️');
+}
+
+/* Fixed: the original source had a literal line break inside join("..."),
+   which caused the entire script to fail parsing. */
+function exportExcelReport(type) {
+  const targetFunc = $('adminSubFuncSelector').value;
+  let rows = [
+    '==== SKILL-WILL DASHBOARD MASTER REPORT ====',
+    `Export Scope,${type === 'all' ? 'All Organization Sub-Functions' : `Target Subfunction Module (${targetFunc})`}`,
+    '',
+    'Manager Name,Manager Email,Region,Depot,Contact,Employee ID,Employee Name,Mapped Sub-Function,Cumulative Skill Total,Skill Designation,Cumulative Will Total,Will Designation'
+  ];
+
+  const managers = type === 'subfunc'
+    ? managersDatabase.filter(m => m.team.some(e => e.subFunc === targetFunc))
+    : managersDatabase;
+
+  let count = 0;
+  managers.forEach(m => m.team.forEach(emp => {
+    if (type === 'subfunc' && emp.subFunc !== targetFunc) return;
+    const x = calculateEmployeeOutputs(emp);
+    rows.push([
+      m.name,m.email,m.region,m.depot,m.contact,emp.id,emp.name,emp.subFunc,
+      x.skillSum.toFixed(1),x.skillResult,x.willSum.toFixed(1),x.willResult
+    ].map(csvCell).join(','));
+    count++;
+  }));
+
+  if (!count) return showToast('No individual data matches the selected scope.','⚠️');
+
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Skill_Will_Master_Data_${type}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  showToast(`Report complete. ${count} data items exported.`,'📊');
+}
+
+function csvCell(value) {
+  return `"${String(value ?? '').replace(/"/g,'""')}"`;
+}
+
+function renderChart() {
+  const canvas = $('matrixChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(canvas.getContext('2d'), {
+    type:'scatter',
+    data:{datasets:[{
+      label:'Team Members Placed', data:[], backgroundColor:'#4f46e5',
+      borderWidth:2, borderColor:'#312e81', pointRadius:7, pointHoverRadius:9
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{min:0,max:30,title:{display:true,text:'Total Skill Score Axis'}},
+        y:{min:0,max:15,title:{display:true,text:'Total Will Score Axis'}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`Team Member Placement (Skill: ${c.parsed.x}, Will: ${c.parsed.y})`}}
+      }
+    }
+  });
+}
+
+function updateChartData() {
+  if (!chartInstance || !activeManager) return;
+  chartInstance.data.datasets[0].data = getVisibleTeamPool().map(emp => {
+    const x = calculateEmployeeOutputs(emp);
+    return {x:x.skillSum,y:x.willSum};
+  });
+  chartInstance.update();
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function jsString(value) {
+  return String(value ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initSystemSelectors();
+  renderChart();
+});
+</script>
+</body>
+</html>
